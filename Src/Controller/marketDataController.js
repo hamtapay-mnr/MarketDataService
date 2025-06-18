@@ -1,4 +1,4 @@
-import * as Notifier from '../Application/marketData.js';
+import * as marketData from '../Application/marketData.js';
 export class MarketDataController {
     constructor(cache, eventQueue, adminEventQueue) {
         this.cache = cache;
@@ -8,23 +8,13 @@ export class MarketDataController {
 
     /**
      * @memberOf NotifierService.Src.Controller.marketDataController
-     * @summary Retrive an price-factor from queue and process it
-     * @description Retrive an price-factor from queue and process it
-     * @param {Object} orderObj price-factor object
+     * @summary Update price in cache
+     * @description Keep price sync with global api
+     * @param {Number} rateLimit max request per second
      * @return {Promise} Promise 
      */
-    async newFactor(factorString) {
-        const factorObj = JSON.parse(factorString.data);
-        console.log("Recieved new factor: ", factorObj);
-        const criticalInventory = await Notifier.checkIfInventoryIsLow(factorObj.remainingGoldPercentage, this.cache, this.adminEventQueue);
-        if (criticalInventory) {
-            const adminWarningObject = { inventoryRemainingPercentage: factorObj.remainingGoldPercentage };
-            console.log("Send warning to admin: ", adminWarningObject);
-            await Notifier.addToQueue(adminWarningObject, this.adminEventQueue);
-            await this.cache.setAdminWarning("1"); // optionally use EX
-        }
-        const factor = Notifier.createUserFactor(factorObj.amount, factorObj.price, factorObj.username);
-        console.log("New factor: ", factor);
-        Notifier.addToQueue(factor, this.eventQueue);
+    async updatePrice() {
+        const price = await marketData.getMarketData();
+        this.cache.setPrice(price);
     }
 }

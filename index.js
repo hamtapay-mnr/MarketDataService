@@ -2,6 +2,9 @@ import { Cache } from './Src/Infrastructure/cache.js';
 import { createClient } from 'redis';
 import { MarketDataController } from './Src/Controller/marketDataController.js';
 
+const cron = require('node-cron');
+
+
 
 // Load Dependencies
 console.log("Initial dependencies");
@@ -13,7 +16,10 @@ await redis.connect();
 
 // Inject dependencies
 const cache = new Cache(redis);
-const marketDataController = new MarketDataController(cache, eventQueue, adminEventQueue);
+const marketDataController = new MarketDataController(cache, eventQueue, null);
 
-await eventQueue.consumeEvent(marketDataController.newFactor.bind(marketDataController));
+cron.schedule('*/2 * * * *', () => { // Run every 2 minutes
+    marketDataController.updatePrice();
+    // Your request logic here
+});
 redis.quit();

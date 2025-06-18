@@ -15,6 +15,9 @@ export class Cache {
     async getPrice() {
         return await this.#get('gold-price');
     }
+    async setPrice(value) {
+        return await this.#set('gold-price', value);
+    }
     async getAdminWarning() {
         return await this.#get('admin-warning-flag');
     }
